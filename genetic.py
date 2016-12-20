@@ -1,8 +1,10 @@
+from __future__ import division
 import random
 import numpy as np
 from numpy.random import choice
 import os
 import xml.etree.ElementTree as ET
+
 
 path = ''
 #path = 'sumo-0.27.1\\tools\\2_INT\\2_INT\\'
@@ -48,6 +50,13 @@ def crossing(chr1, chr2, size):
     crossed[0,size:] = chr2[size:]
     crossed[1,size:] = chr1[size:]    
     return crossed
+#########################
+# function to mutate a gene
+#########################
+def mutate():
+    mutation = random.random()
+    mutation = min_time + (max_time - min_time) * mutation
+    return int(mutation)
 
 ######################
 # initialisation of a random population
@@ -57,7 +66,7 @@ lightsNb = 16
 max_time = 60
 min_time = 5
 
-populationSize = 4
+populationSize = 12
 population = np.random.random((populationSize,lightsNb))
 population = min_time + (max_time - min_time) * population
 #we transform the trafic lights into integers
@@ -71,7 +80,7 @@ mutationProba = 1/float(lightsNb)
 # reiterate until the population's evaluation is to far from the fitness fonction -QUESTION-
 # until we have a fitness function, will use a for loop with a fixed number of iterations -QUESTION-
 #why xrange ?
-for x in xrange(1,3):       
+for x in xrange(1,10):       
 #####################N
 # evaluation of the scores produced by each member of the population
 ######################
@@ -81,31 +90,31 @@ for x in xrange(1,3):
     if x==1: #first iteration 
         for i in range(populationSize):
             writeTimes(population[i,:])
-            os.system('sumo ' + path + 'twoIntersections.500.sumo.cfg')
+            os.system('sumo ' + path + 'twoIntersections.500.sumo.cfg'+' >nul 2>&1')
             marks[i] = getOutputs()
     else:
-        #not needed ?
-        marks[0:populationSize/2] = nextMarks
-        for i in range(populationSize/2,populationSize):
+        marks[0:int(populationSize/2)] = nextMarks
+        for i in range(int(populationSize/2),populationSize):
             writeTimes(population[i,:])
-            os.system('sumo ' + path + 'twoIntersections.500.sumo.cfg')
+            os.system('sumo ' + path + 'twoIntersections.500.sumo.cfg'+' >nul 2>&1')
             marks[i] = getOutputs()
 
     # we modify the scores to get higher values for low durations
+    print("for iteration ", x ," we have scores of",marks)
     initialMarks = marks
-    #marks = np.sum(marks) - marks
+    marks = np.sum(marks) - marks
     #we increase probability of selection for the people who have the best scores
-    #marks[np.argmax(marks)] += 300
-    #marks = np.exp(marks-np.amin(marks))
+    marks[np.argmax(marks)] += 300
+    #    marks = np.exp(marks-np.amin(marks))
     ######################
     # Selection
     ######################
     #randomly choose N/2 people from the population, Note that higher scores have more chances of being selected
     selected = np.zeros((populationSize,lightsNb))
     index = range(populationSize)
-    nextMarks = np.zeros((populationSize/2))
+    nextMarks = np.zeros(int(populationSize/2))
     #Note that nextmarks only contains N/2 people of the population 
-    for i in range(populationSize/2):
+    for i in range(int(populationSize/2)):
         choix = choice(index, p= marks[index[:]]/np.sum(marks[index[:]]))
         selected[i,:] = population[choix,:]
         nextMarks[i] = initialMarks[choix]
@@ -118,58 +127,39 @@ for x in xrange(1,3):
     #why not a fixed crossing probability 
     crossingProba = 0.3
     crossed = np.zeros((2,lightsNb))
-    for i in range(0, populationSize/2, 2):
+    for i in range(0, int(populationSize/2), 2):
         if(i+1<populationSize/2): 
             #we cross pairs of the recently selected people to get mixed children
             crossed = crossing(selected[i,:],selected[i+1,:], int(lightsNb*crossingProba))
-            #why not 
-            """
+            
             #we then generate random mutations for these crossed children
             for k in range(2):
                 for j in range(lightsNb):
-                if random.random() < mutationProba:
-                    mutation = random.random()
-                    mutation = min_time + (max_time - min_time) * mutation
-                    crossed[k,j] = mutation
-                    #we put them in the remaining selected children
-                    selected[i+populationSize/2+k,:] = crossed[k,:]
-            """
-            for j in range(lightsNb):
-                # Mutation on child 1
-                if random.random() < mutationProba:
-                    mutation = random.random()
-                    mutation = min_time + (max_time - min_time) * mutation
-                    crossed[0,j] = mutation
-                # Mutation on child 2
-                if random.random() < mutationProba:
-                    mutation = random.random()
-                    mutation = min_time + (max_time - min_time) * mutation
-                    crossed[1,j] = mutation
-                    
-            selected[i+populationSize/2,:] = crossed[0,:]
-            selected[i+populationSize/2+1,:] = crossed[1,:]
+                    if random.random() < mutationProba:
+                        crossed[k,j] = mutate()
+                        while crossed[k,j]==0:
+                            crossed[k,j] = mutate()
+                        #we put them in the remaining selected children
+                        selected[i+int(populationSize/2)+k,:] = crossed[k,:]
         else: #when the last element is alone and no couple can be done we just mutate it to generate a child
-            selected[i+populationSize/2,:] = selected[i,:]
-            # Mutation on child 1
+            selected[i+int(populationSize/2),:] = selected[i,:]
+            # Mutation on remaining parent that will be a mutated childs
             for j in range(lightsNb):
                 if random.random() < mutationProba:
-                    mutation = random.random()
-                    mutation = min_time + (max_time - min_time) * mutation
-                    selected[i+populationSize/2,j] = mutation
+                    selected[i+int(populationSize/2),j]=mutate()
+                    while selected[i+int(populationSize/2),j]==0:
+                        crossed[k,j] = mutate()
 
     # reinitiate population for next process
     #forgot pop=selected ?
     population = selected
-#    print initialMarks
 
-#print population    
+marks = np.zeros((populationSize))
+marks[0:int(populationSize/2)] = nextMarks
+for i in range(int(populationSize/2),populationSize):
+    writeTimes(population[i,:])
+    os.system('sumo ' + path + 'twoIntersections.500.sumo.cfg'+' >nul 2>&1')
+    marks[i] = getOutputs()
 
-    #marks = np.zeros((populationSize))
-    #marks[0:populationSize/2] = nextMarks
-    """    for i in range(populationSize/2,populationSize):
-        writeTimes(population[i,:])
-        os.system('sumo ' + path + 'twoIntersections.500.sumo.cfg')
-        marks[i] = getOutputs()
-    """
-    print initialMarks
-    print marks
+print initialMarks
+#print marks
