@@ -9,7 +9,6 @@ import xml.etree.ElementTree as ET
 path = ''
 #path = 'sumo-0.27.1\\tools\\2_INT\\2_INT\\'
 
-
 #########################
 # function that writes the new trafic light durations in the network file
 #########################
@@ -50,13 +49,6 @@ def crossing(chr1, chr2, size):
     crossed[0,size:] = chr2[size:]
     crossed[1,size:] = chr1[size:]    
     return crossed
-#########################
-# function to mutate a gene
-#########################
-def mutate():
-    mutation = random.random()
-    mutation = min_time + (max_time - min_time) * mutation
-    return int(mutation)
 
 ######################
 # initialisation of a random population
@@ -66,7 +58,7 @@ lightsNb = 16
 max_time = 60
 min_time = 5
 
-populationSize = 12
+populationSize = 100
 population = np.random.random((populationSize,lightsNb))
 population = min_time + (max_time - min_time) * population
 #we transform the trafic lights into integers
@@ -75,11 +67,17 @@ for i in range(populationSize):
         population[i,j]=int(population[i,j])
         
 mutationProba = 1/float(lightsNb)
+#########################
+# function to mutate a gene
+#########################
+def mutate():
+    mutation = random.random()
+    mutation = min_time + (max_time - min_time) * mutation
+    return int(mutation)
 
 
 # reiterate until the population's evaluation is to far from the fitness fonction -QUESTION-
 # until we have a fitness function, will use a for loop with a fixed number of iterations -QUESTION-
-#why xrange ?
 for x in xrange(1,10):       
 #####################N
 # evaluation of the scores produced by each member of the population
@@ -120,7 +118,7 @@ for x in xrange(1,10):
         nextMarks[i] = initialMarks[choix]
         index.remove(choix)
     #print selected
-    #print nextMarks
+    #print ("this is next marks ",nextMarks)
     ######################
     # Crossing and Mutation, Note we only cross and mutate the ones that we selected, so the ones that we deemed were the best
     ######################
@@ -137,18 +135,14 @@ for x in xrange(1,10):
                 for j in range(lightsNb):
                     if random.random() < mutationProba:
                         crossed[k,j] = mutate()
-                        while crossed[k,j]==0:
-                            crossed[k,j] = mutate()
-                        #we put them in the remaining selected children
-                        selected[i+int(populationSize/2)+k,:] = crossed[k,:]
+                #we put them in the remaining selected children
+                selected[i+int(populationSize/2)+k,:] = crossed[k,:]
         else: #when the last element is alone and no couple can be done we just mutate it to generate a child
             selected[i+int(populationSize/2),:] = selected[i,:]
             # Mutation on remaining parent that will be a mutated childs
             for j in range(lightsNb):
                 if random.random() < mutationProba:
                     selected[i+int(populationSize/2),j]=mutate()
-                    while selected[i+int(populationSize/2),j]==0:
-                        crossed[k,j] = mutate()
 
     # reinitiate population for next process
     #forgot pop=selected ?
