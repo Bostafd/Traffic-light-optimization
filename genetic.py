@@ -105,7 +105,7 @@ for x in xrange(1,10):
     marks = np.sum(marks) - marks
     #we increase probability of selection for the people who have the best scores
     marks[np.argmax(marks)] += 300
-    #    marks = np.exp(marks-np.amin(marks))
+    marks = np.exp(marks-np.amin(marks))
     ######################
     # Selection
     ######################
