@@ -247,11 +247,12 @@ def mutate():
 
 # reiterate until the population's evaluation is to far from the fitness fonction -QUESTION-
 # until we have a fitness function, will use a for loop with a fixed number of iterations -QUESTION-
-for x in xrange(1,6):       
+for x in range(1,20):       
 #####################N
 # evaluation of the scores produced by each member of the population
 ######################
 #first we create an array that will contain the scores
+    print"processing iteration : " + str(x) +"......"
     marks = np.zeros((populationSize))
         
     if x==1: #first iteration 
@@ -267,7 +268,8 @@ for x in xrange(1,6):
             marks[i] = getOutputs(criteria,optimization)
 
     # we modify the scores to get higher values for low durations
-    print("for iteration " , x ," we have scores of ", np.sort(marks))
+    #print("for iteration " , x ," we have scores of ", np.sort(marks))
+    print"the mean value of the scores in the population is : " , np.mean(marks)
     initialMarks = marks
     marks = np.sum(marks) - marks
     #we increase probability of selection for the people who have the best scores
@@ -285,7 +287,10 @@ for x in xrange(1,6):
         choix = choice(index, p= marks[index[:]]/np.sum(marks[index[:]]))
         selected[i,:] = population[choix,:]
         nextMarks[i] = initialMarks[choix]
+        #python2
         index.remove(choix)
+        #python3
+        #index.pop([choix])
     #print selected
     #print ("this is next marks ",nextMarks)
     ######################
