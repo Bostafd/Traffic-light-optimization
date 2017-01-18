@@ -7,7 +7,8 @@ import os
 import xml.etree.ElementTree as ET
 import time
 
-path = ''
+#path = 'twoIntersections'
+path = 'sumo/map'
 #path = 'sumo-0.27.1\\tools\\2_INT\\2_INT\\'
 
 #########################
@@ -93,7 +94,8 @@ while True:
 #########################
 def writeTimes(new_time):
     #access xml file
-    tree = ET.parse(path + 'twoIntersections.net.xml')
+    #tree = ET.parse(path + 'twoIntersections.net.xml')
+    tree = ET.parse(path + '.net.xml')
     root = tree.getroot()
     j = 0
     for tlLogic in root.findall('tlLogic'):
@@ -101,7 +103,8 @@ def writeTimes(new_time):
             phase.set('duration', str(new_time[j]))
             j += 1
     #writing input in xml file 
-    tree.write(path + "twoIntersections.net.xml")
+    tree.write(path + ".net.xml")
+    #tree.write(path + "twoIntersections.net.xml")
     pass
 
 
@@ -110,13 +113,17 @@ def writeTimes(new_time):
 # by default we will be using uniform optimization
 #########################
 def getOutputs(criteria="unique",optimization="duration"):
-    tree = ET.parse(path + 'output-tripinfos.xml')
+    tree = ET.parse(path + '.output-tripinfos.xml')
     root = tree.getroot()
     #the parameters that we chose to use for our optimization
     avgDuration = 0
     avgRouteLength = 0
     avgWaitSteps = 0
     avgTimeLoss = 0
+    maxDuration = 0
+    maxRouteLength = 0
+    maxWaitSteps = 0
+    maxTimeLoss = 0
     #This list will contain the averages of our parameters
     L=[]
     #iteration counter for averaging
@@ -125,96 +132,164 @@ def getOutputs(criteria="unique",optimization="duration"):
     if criteria is "multiple":
         if optimization is "uniform":
             for tripinfo in root.findall('tripinfo'):
+                
+                if(maxDuration<float(tripinfo.get('duration'))):
+                    maxDuration=float(tripinfo.get('duration'))
                 avgDuration += float(tripinfo.get('duration'))
+                
+                if(maxRouteLength<float(tripinfo.get('routeLength'))):
+                    maxRouteLength=float(tripinfo.get('routeLength'))
                 avgRouteLength += float(tripinfo.get('routeLength'))
+                
+                if(maxWaitSteps<float(tripinfo.get('waitSteps'))):
+                    maxWaitSteps=float(tripinfo.get('waitSteps'))
                 avgWaitSteps += float(tripinfo.get('waitSteps'))
+                
+                if(maxTimeLoss<float(tripinfo.get('timeLoss'))):
+                    maxTimeLoss=float(tripinfo.get('timeLoss'))
                 avgTimeLoss += float(tripinfo.get('timeLoss'))
                 i += 1
-            L.append(avgDuration/i)
-            L.append(avgRouteLength/i)
-            L.append(avgWaitSteps/i)
-            L.append(avgTimeLoss/i)
+            L.append(100*((avgDuration/i)/maxDuration))
+            L.append(100*((avgRouteLength/i)/maxRouteLength))
+            L.append(100*((avgWaitSteps/i)/maxWaitSteps))
+            L.append(100*((avgTimeLoss/i)/maxTimeLoss))
             res=(L[0]+L[1]+L[2]+L[3])/4
             L.append(res)
             return L
         if optimization is "duration":
             for tripinfo in root.findall('tripinfo'):
+                
+                if(maxDuration<float(tripinfo.get('duration'))):
+                    maxDuration=float(tripinfo.get('duration'))
                 avgDuration += float(tripinfo.get('duration'))
+                
+                if(maxRouteLength<float(tripinfo.get('routeLength'))):
+                    maxRouteLength=float(tripinfo.get('routeLength'))
                 avgRouteLength += float(tripinfo.get('routeLength'))
+                
+                if(maxWaitSteps<float(tripinfo.get('waitSteps'))):
+                    maxWaitSteps=float(tripinfo.get('waitSteps'))
                 avgWaitSteps += float(tripinfo.get('waitSteps'))
+                
+                if(maxTimeLoss<float(tripinfo.get('timeLoss'))):
+                    maxTimeLoss=float(tripinfo.get('timeLoss'))
                 avgTimeLoss += float(tripinfo.get('timeLoss'))
                 i += 1
-            L.append(avgDuration/i)
-            L.append(avgRouteLength/i)
-            L.append(avgWaitSteps/i)
-            L.append(avgTimeLoss/i)
+            L.append(100*((avgDuration/i)/maxDuration))
+            L.append(100*((avgRouteLength/i)/maxRouteLength))
+            L.append(100*((avgWaitSteps/i)/maxWaitSteps))
+            L.append(100*((avgTimeLoss/i)/maxTimeLoss))
             res=(priviledge*L[0]+L[1]+L[2]+L[3])/(priviledge+3)
             L.append(res)
             return L
         if optimization is "routeLength":
             for tripinfo in root.findall('tripinfo'):
+                if(maxDuration<float(tripinfo.get('duration'))):
+                    maxDuration=float(tripinfo.get('duration'))
                 avgDuration += float(tripinfo.get('duration'))
+                
+                if(maxRouteLength<float(tripinfo.get('routeLength'))):
+                    maxRouteLength=float(tripinfo.get('routeLength'))
                 avgRouteLength += float(tripinfo.get('routeLength'))
+                
+                if(maxWaitSteps<float(tripinfo.get('waitSteps'))):
+                    maxWaitSteps=float(tripinfo.get('waitSteps'))
                 avgWaitSteps += float(tripinfo.get('waitSteps'))
+                
+                if(maxTimeLoss<float(tripinfo.get('timeLoss'))):
+                    maxTimeLoss=float(tripinfo.get('timeLoss'))
                 avgTimeLoss += float(tripinfo.get('timeLoss'))
                 i += 1
-            L.append(avgDuration/i)
-            L.append(avgRouteLength/i)
-            L.append(avgWaitSteps/i)
-            L.append(avgTimeLoss/i)
+            L.append(100*((avgDuration/i)/maxDuration))
+            L.append(100*((avgRouteLength/i)/maxRouteLength))
+            L.append(100*((avgWaitSteps/i)/maxWaitSteps))
+            L.append(100*((avgTimeLoss/i)/maxTimeLoss))
             res=(L[0]+priviledge*L[1]+L[2]+L[3])/(priviledge+3)
             L.append(res)
             return L
 
         if optimization is "waitSteps":
             for tripinfo in root.findall('tripinfo'):
+                if(maxDuration<float(tripinfo.get('duration'))):
+                    maxDuration=float(tripinfo.get('duration'))
                 avgDuration += float(tripinfo.get('duration'))
+                
+                if(maxRouteLength<float(tripinfo.get('routeLength'))):
+                    maxRouteLength=float(tripinfo.get('routeLength'))
                 avgRouteLength += float(tripinfo.get('routeLength'))
+                
+                if(maxWaitSteps<float(tripinfo.get('waitSteps'))):
+                    maxWaitSteps=float(tripinfo.get('waitSteps'))
                 avgWaitSteps += float(tripinfo.get('waitSteps'))
+                
+                if(maxTimeLoss<float(tripinfo.get('timeLoss'))):
+                    maxTimeLoss=float(tripinfo.get('timeLoss'))
                 avgTimeLoss += float(tripinfo.get('timeLoss'))
                 i += 1
-            L.append(avgDuration/i)
-            L.append(avgRouteLength/i)
-            L.append(avgWaitSteps/i)
-            L.append(avgTimeLoss/i)
+            L.append(100*((avgDuration/i)/maxDuration))
+            L.append(100*((avgRouteLength/i)/maxRouteLength))
+            L.append(100*((avgWaitSteps/i)/maxWaitSteps))
+            L.append(100*((avgTimeLoss/i)/maxTimeLoss))
             res=(L[0]+L[1]+priviledge*L[2]+L[3])/(priviledge+3)
             L.append(res)
             return L
         if optimization is "timeLoss":
             for tripinfo in root.findall('tripinfo'):
+                if(maxDuration<float(tripinfo.get('duration'))):
+                    maxDuration=float(tripinfo.get('duration'))
                 avgDuration += float(tripinfo.get('duration'))
+                
+                if(maxRouteLength<float(tripinfo.get('routeLength'))):
+                    maxRouteLength=float(tripinfo.get('routeLength'))
                 avgRouteLength += float(tripinfo.get('routeLength'))
+                
+                if(maxWaitSteps<float(tripinfo.get('waitSteps'))):
+                    maxWaitSteps=float(tripinfo.get('waitSteps'))
                 avgWaitSteps += float(tripinfo.get('waitSteps'))
+                
+                if(maxTimeLoss<float(tripinfo.get('timeLoss'))):
+                    maxTimeLoss=float(tripinfo.get('timeLoss'))
                 avgTimeLoss += float(tripinfo.get('timeLoss'))
                 i += 1
-            L.append(avgDuration/i)
-            L.append(avgRouteLength/i)
-            L.append(avgWaitSteps/i)
-            L.append(avgTimeLoss/i)
+            L.append(100*((avgDuration/i)/maxDuration))
+            L.append(100*((avgRouteLength/i)/maxRouteLength))
+            L.append(100*((avgWaitSteps/i)/maxWaitSteps))
+            L.append(100*((avgTimeLoss/i)/maxTimeLoss))
             res=(L[0]+L[1]+L[2]+priviledge*L[3])/(priviledge+3)
             L.append(res)
             return L
     else :
         if optimization is "duration":
             for tripinfo in root.findall('tripinfo'):
+                if(maxDuration<float(tripinfo.get('duration'))):
+                    maxDuration=float(tripinfo.get('duration'))
                 avgDuration += float(tripinfo.get('duration'))
                 i += 1
-            return avgDuration/i
+            return 100*((avgDuration/i)/maxDuration)
+        
         if optimization is "routeLength":
             for tripinfo in root.findall('tripinfo'):
+                if(maxRouteLength<float(tripinfo.get('routeLength'))):
+                    maxRouteLength=float(tripinfo.get('routeLength'))
                 avgRouteLength += float(tripinfo.get('routeLength'))
                 i += 1
-            return avgRouteLength/i
+            return 100*((avgRouteLength/i)/maxRouteLength)
+        
         if optimization is "waitSteps":
             for tripinfo in root.findall('tripinfo'):
+                if(maxWaitSteps<float(tripinfo.get('waitSteps'))):
+                    maxWaitSteps=float(tripinfo.get('waitSteps'))
                 avgWaitSteps += float(tripinfo.get('waitSteps'))
                 i += 1
-            return avgWaitSteps/i
+            return 100*((avgWaitSteps/i)/maxWaitSteps)
+        
         if optimization is "timeLoss":
             for tripinfo in root.findall('tripinfo'):
+                if(maxTimeLoss<float(tripinfo.get('timeLoss'))):
+                    maxTimeLoss=float(tripinfo.get('timeLoss'))
                 avgTimeLoss += float(tripinfo.get('timeLoss'))
                 i += 1
-            return avgTimeLoss/i
+            return 100*((avgTimeLoss/i)/maxTimeLoss)
         
             
 
@@ -236,11 +311,18 @@ def crossing(chr1, chr2, size):
 # initialisation of a random population
 ######################
 #Trafic light parameters
-lightsNb = 16
+#lightsNb = 16
+#get number of lights for the current map
+treeL = ET.parse(path + '.net.xml')
+root = treeL.getroot()
+lightsNb = 0
+for tlLogic in root.findall('tlLogic'):
+    for phase in tlLogic.findall('phase'):
+        lightsNb += 1
 max_time = 60
 min_time = 5
 
-populationSize = 20
+populationSize = 40
 population = np.random.random((populationSize,lightsNb))
 population = min_time + (max_time - min_time) * population
 #we transform the trafic lights into integers
@@ -262,7 +344,7 @@ def mutate():
 # reiterate until the population's evaluation is to far from the fitness fonction -QUESTION-
 # until we have a fitness function, will use a for loop with a fixed number of iterations -QUESTION-
 
-file= "data_"+criteria+"_"+optimization+".xlsx"
+file= path+"_data_"+criteria+"_"+optimization+".xlsx"
 workbook = xlsxwriter.Workbook(file)
 worksheet = workbook.add_worksheet()
 if criteria=="unique":
@@ -278,7 +360,7 @@ else :
     worksheet.write('F1', 'best-optimization individual')
     
 start_time = time.time()
-for x in range(1,41):       
+for x in range(1,4):       
 #####################N
 # evaluation of the scores produced by each member of the population
 ######################
@@ -294,7 +376,7 @@ for x in range(1,41):
     if x==1: #first iteration 
         for i in range(populationSize):
             writeTimes(population[i,:])
-            os.system('sumo ' + path + 'twoIntersections.500.sumo.cfg'+' >nul 2>&1')
+            os.system('sumo ' + path + '.sumo.cfg'+' >nul 2>&1')
             if criteria=="unique":
                 marks[i] = getOutputs(criteria,optimization)
             else : 
@@ -313,7 +395,7 @@ for x in range(1,41):
             data_timeloss[0:int(populationSize/2)] = nexttimeloss
         for i in range(int(populationSize/2),populationSize):
             writeTimes(population[i,:])
-            os.system('sumo ' + path + 'twoIntersections.500.sumo.cfg'+' >nul 2>&1')
+            os.system('sumo ' + path + '.sumo.cfg'+' >nul 2>&1')
             if criteria=="unique":
                 marks[i] = getOutputs(criteria,optimization)
             else : 
@@ -433,7 +515,7 @@ marks = np.zeros((populationSize))
 marks[0:int(populationSize/2)] = nextMarks
 for i in range(int(populationSize/2),populationSize):
     writeTimes(population[i,:])
-    os.system('sumo ' + path + 'twoIntersections.500.sumo.cfg'+' >nul 2>&1')
+    os.system('sumo ' + path + '.sumo.cfg'+' >nul 2>&1')
     if criteria=="unique":
         marks[i] = getOutputs(criteria,optimization)
     else :
